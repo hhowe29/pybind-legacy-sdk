@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <iostream>
 #include <thread>
+#include <memory>
 
 using namespace std;
 namespace py = pybind11;
@@ -40,9 +41,12 @@ struct PyEventListener : public EventListener {
     }
 };
 
-void register_pylistener(PyEventListener *listener) {
+std::shared_ptr<EventListener> listenerRef = {};
+
+void register_pylistener(std::shared_ptr<EventListener> listener) {
     cout << __PRETTY_FUNCTION__ << endl;
-    register_listener(static_cast<EventListener*>(listener));
+    listenerRef = std::move(listener);
+    register_listener(listenerRef.get());
 }
 
 void fire()
@@ -72,7 +76,7 @@ void fire_async()
 
 PYBIND11_MODULE(example, m)
 {
-    py::class_<EventListener, PyEventListener>(m, "EventListener")
+    py::class_<EventListener, std::shared_ptr<EventListener>, PyEventListener>(m, "EventListener")
         .def(py::init<>())
         .def("OnEvent", &EventListener::OnEvent);
 
