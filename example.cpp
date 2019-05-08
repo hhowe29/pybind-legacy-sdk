@@ -40,10 +40,21 @@ struct PyEventListener : public EventListener {
     }
 };
 
-void register_pylistener(PyEventListener *listener) {
-    cout << __PRETTY_FUNCTION__ << endl;
-    register_listener(static_cast<EventListener*>(listener));
-}
+struct CoreSdk
+{
+    PyEventListener * listener;
+    CoreSdk(PyEventListener * listener)
+        :listener(listener)
+    {
+        cout << __PRETTY_FUNCTION__ << endl;
+        register_listener(static_cast<EventListener*>(listener));
+    }
+
+    ~CoreSdk()
+    {
+        cout << __PRETTY_FUNCTION__ << endl;
+    }
+};
 
 void fire()
 {
@@ -76,7 +87,10 @@ PYBIND11_MODULE(example, m)
         .def(py::init<>())
         .def("OnEvent", &EventListener::OnEvent);
 
-    m.def("register_listener", &register_pylistener, "Registers a listener with the SDK");
+    py::class_<CoreSdk>(m, "CoreSdk")
+        .def(py::init<PyEventListener *>(), py::keep_alive<1, 2>());
+
+//    m.def("register_listener", &register_pylistener, "Registers a listener with the SDK");
     m.def("fire", &fire, "Fire an event handler synchronously");
     m.def("fire_async", &fire_async, "Fire an event handler asynchronously");
 }

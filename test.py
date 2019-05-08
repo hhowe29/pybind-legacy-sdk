@@ -5,7 +5,7 @@ class EventListener(example.EventListener):
         print('Py code got an event : %d : %s' % (code, text))
 
 
-example.register_listener(EventListener())
+sdk = example.CoreSdk(EventListener())
 example.fire()
 
 #example.fire_async()
